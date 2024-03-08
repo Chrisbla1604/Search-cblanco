@@ -1,7 +1,12 @@
 
-//let render_json ="";
-//let render_xml="";
-//let render_final="";
+let Json_procesado=[];
+
+let Xml_procesado;
+
+let coincidencia_json = 0;
+
+let coincidencia_xml = 0;
+
 
 
 let loadProduct = () => {
@@ -19,34 +24,21 @@ let loadProduct = () => {
     console.log(`HTTP Json Request Exitoso: ${response_json.status}`);
     let result_json = response_json.json()
     .then(body_json => {
-     // render_json = Proccesing_data_json(body_json);
-      //Load_plantilla_final(render_json);}
+      Json_procesado = body_json;
       Load_plantilla_final(Proccesing_data_json(body_json));
     })  
   }
   return response_json;
 })
 
-  /*if(response_json.ok)
-  {
-    console.log(`HTTP Json Request Exitoso: ${response_json.status}`);
-  }
-  return response_json.json();
- })*/
-
- /*.then(result_json => {
-   
-   render_json = Proccesing_data_json(result_json);
-
-   Load_plantilla_final(render_json);
-
- })*/
+  
  .catch(error => {
 
   console.log("hola error");
   console.log( error );
 
  }); 
+
 
  
  let response_xml =  fetch(url_xml)
@@ -55,28 +47,15 @@ let loadProduct = () => {
 
   if(response_xml.ok){
     console.log(`HTTP XML  Request Exitoso: ${response_xml.status}`);
-    let xml_text = response_xml.text()
+     let xml_text = response_xml.text()
     .then(result_xml => {
       let body_xml =(new DOMParser()).parseFromString(result_xml, 'application/xml');
+      Xml_procesado = body_xml;
       Load_plantilla_final(Proccesing_data_xml(body_xml));
     })
     return response_xml;
   }
 
- /* if(response_xml.ok)
-  {
-    console.log(`HTTP XML  Request Exitoso: ${response_xml.status}`);
-  }
-  return response_xml.text();
- })
- .then(result_text => {
-
-   let result_xml = (new DOMParser()).parseFromString(result_text, 'application/xml');
- 
-   render_xml =  Proccesing_data_xml(result_xml); 
-   Load_plantilla_final(render_xml);*/
-   
- 
  })
  .catch(error => {
    
@@ -88,6 +67,8 @@ let loadProduct = () => {
 
 
 loadProduct();
+
+
 
 let Proccesing_data_json = (data_json) =>{
 
@@ -120,7 +101,7 @@ let Proccesing_data_json = (data_json) =>{
          </p>
        </div>
      </div>
-   </div>`
+   </div>`;
 
     plantilla_json = plantilla_json + plantilla;
   }
@@ -128,10 +109,10 @@ let Proccesing_data_json = (data_json) =>{
 }
 
 
+
 let Proccesing_data_xml = (data_xml) =>{
 
   let plantilla_xml="";
-  let arreglo_tagProduct = [];
 
   console.log("Listo para procesar el XML");
 
@@ -140,7 +121,6 @@ let Proccesing_data_xml = (data_xml) =>{
 
   for(let i=0 ; i<array_products.length ; i++)
   {
-    let num_product = array_products[i];
     let names = array_products[i].getElementsByTagName("name");
     let name= names[0].innerHTML;
 
@@ -152,11 +132,6 @@ let Proccesing_data_xml = (data_xml) =>{
 
     let prices = array_products[i].getElementsByTagName("price");
     let price= prices[0].innerHTML;
-
-    /*console.log(name);
-    console.log(src);
-    console.log(type);
-    console.log(price);*/
 
     let plantilla =`<div class="col-xl-3 col-md-6 mb-xl-0 mb-4 mt-4">
      <div class="card card-blog card-plain">
@@ -177,7 +152,7 @@ let Proccesing_data_xml = (data_xml) =>{
          </p>
        </div>
      </div>
-   </div>`
+   </div>`;
 
     plantilla_xml = plantilla_xml + plantilla;
   } 
@@ -185,9 +160,9 @@ let Proccesing_data_xml = (data_xml) =>{
 }
 
 
+
 let Load_plantilla_final = (plantilla) =>{
 
-  //render_final = render_final + plantilla;
 
   let class_rows = document.getElementsByClassName("row");
  
@@ -197,29 +172,121 @@ let Load_plantilla_final = (plantilla) =>{
 
   console.log("Cargando la plantilla para renderizar el HTML....");
 
-  //console.log(render_final);
-
 }
 
-//Load_plantilla_final(innerHTML_json);
 
-/*function renderizado() {
-  
-  let render = "";
-  
-  let promise = new Promise( (resolve) => {
-    setTimeout(() => {
+let search_button = document.getElementById("filter");
+let input_text = document.getElementById("text");
 
-      render = render_json;
+search_button.addEventListener('click', (event) => {
+
+  coincidencia_json=0;
+  coincidencia_xml=0;
+
+  Filtrado_Json(input_text.value.trim(),Json_procesado);
+
+  Filtrado_Render_Xml(input_text.value.trim(),Xml_procesado);
+
+  if (coincidencia_json==0) 
+  {
+    if(coincidencia_xml==0) {
+      console.log("No hubo coincidencia");
+
+      let rows_index = document.getElementsByClassName("row");
+      let row_index= rows_index[3];
+      row_index.innerHTML =`<h4 style="text-align: center ; padding-bottom: 30px"> NO HUBO COINCIDENCIAS </h4>`;
+    } 
+  }
+    
+});
+
+
+
+let Filtrado_Json = (input_text,Json_Format) =>{
+
+  let dato_json_filter = Json_Format.filter(data_searched => (data_searched.name == input_text) || (data_searched.type == input_text));
+  
+  for(let element of dato_json_filter)
+  {
+     if ((element.name==input_text) || (element.type==input_text))
+     {
+        coincidencia_json = 1;
+     }
+
+  }
+  console.log("Haciendo Filtrado Json...");
+
+  Clean_Product_Area();
+
+  Load_plantilla_final(Proccesing_data_json(dato_json_filter));
+}
+
+
+
+let Filtrado_Render_Xml = (input_text,Xml_Format) =>{
+
+
+  let Xml_products = Xml_Format.getElementsByTagName("product");
+  let plantilla_final="";
+
+  console.log("Haciendo Filtrado Xml ...");
+
+   for(let i=0 ; i<Xml_products.length ; i++)
+  {
+    let names = Xml_products[i].getElementsByTagName("name");
+    let name = names[0].innerHTML;
+
+    let sources = Xml_products[i].getElementsByTagName("src");
+    let src= sources[0].innerHTML;
+
+    let types = Xml_products[i].getElementsByTagName("type");
+    let type= types[0].innerHTML;
+
+    let prices = Xml_products[i].getElementsByTagName("price");
+    let price= prices[0].innerHTML;
+    
+    if((input_text == name) || (input_text == type ) )
+    { 
       
-      resolve(render);
+     let plantilla =`<div class="col-xl-3 col-md-6 mb-xl-0 mb-4 mt-4">
+      <div class="card card-blog card-plain">
+        <div class="card-header p-0 mt-n4 mx-3">
+          <a class="d-block shadow-xl border-radius-xl">
+            <img src="${src}" alt="${name}" class="img-fluid shadow border-radius-xl">
+          </a>
+        </div>
+        <div class="card-body p-3">
+          <p class="mb-0 text-sm">${type}</p>
+          <a href="javascript:;">
+            <h5>
+              ${name}
+            </h5>
+          </a>
+          <p class="mb-4 text-sm">
+            <b>Price: </b> $ ${price}
+          </p>
+        </div>
+      </div>
+    </div>`
 
-    }, 5000);
-  })
-  
-  return promise;
+    plantilla_final = plantilla_final + plantilla;
+
+    coincidencia_xml=1;
+    }
 }
 
-renderizado()
-.then(render_final => {console.log(render_final)});*/
+Load_plantilla_final(plantilla_final); 
 
+} 
+
+
+
+let Clean_Product_Area = () =>{
+ 
+  let class_rows = document.getElementsByClassName("row");
+ 
+  let class_row = class_rows[3];
+
+  class_row.innerHTML="";
+}
+  
