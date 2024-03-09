@@ -194,8 +194,24 @@ search_button.addEventListener('click', (event) => {
 
       let rows_index = document.getElementsByClassName("row");
       let row_index= rows_index[3];
-      row_index.innerHTML =`<h4 style="text-align: center ; padding-bottom: 30px"> NO HUBO COINCIDENCIAS </h4>`;
-    } 
+
+      row_index.innerHTML = `
+        <div class="col-6">
+        <h5 style="text-align: center ; padding-bottom: 30px">Busqueda sin resultados </h5>
+        </div>
+        <div class="col-6" style="padding-bottom: 30px ; text-align: center">
+        <button id="Load_Products" class="btn btn-outline-dark btn-sm mb-0 me-1" style="background-color: white">Load all Products again</button>
+        </div>`
+       
+      let Button_load_products = document.getElementById("Load_Products");
+
+      Button_load_products.addEventListener('click', (event) => { 
+      Clean_Product_Area();
+      loadProduct(); 
+     
+      });
+
+     }
   }
     
 });
@@ -245,7 +261,7 @@ let Filtrado_Render_Xml = (input_text,Xml_Format) =>{
     let prices = Xml_products[i].getElementsByTagName("price");
     let price= prices[0].innerHTML;
     
-    if((input_text == name) || (input_text == type ) )
+    if((input_text == name) || (input_text == type ))
     { 
       
      let plantilla =`<div class="col-xl-3 col-md-6 mb-xl-0 mb-4 mt-4">
